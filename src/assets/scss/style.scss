@@ -1,0 +1,97 @@
+html,
+body {
+  font-family: 'Roboto', sans-serif;
+  min-height: 100%;
+}
+
+h2 {
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin-bottom: 1rem;
+}
+
+.content a {
+  color: #afbd22;
+  text-decoration: underline;
+  transition: all 0.3s ease-in-out;
+  &:hover {
+    color: #99a50b;
+    text-decoration: none;
+  }
+}
+
+$base-font-size: 0em;
+$font-scale: 1; // amount of px headings grow from h6 to h1
+
+@for $i from 1 through 100 {
+  .ifs-#{$i} {
+    font-size: $base-font-size + $font-scale * $i;
+  }
+}
+
+
+
+
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+/*
+img[lazy="loading"] {
+ //your style here
+}
+img[lazy="error"] {
+  //your style here
+}*/ 
+img[lazy="loaded"] {
+  animation: fadeIn 1s;
+}
+
+.content {
+  ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 15px;
+  margin-bottom: 20px;
+  li {
+    position: relative;
+    padding-left: 1.5em;
+    &:before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.5em;
+      width: 0.75em;
+      height: 0.75em;
+      border-radius: 50%;
+      background: #ffd100; 
+
+    }
+  }
+}
+
+ol {
+  list-style: numeric inside;
+  margin: 0;
+  margin-bottom: 20px;
+  li {
+    &::marker {
+    font-weight: bold;
+  }
+  }
+  
+}
+}
+
+.text-shadow-50 {
+  text-shadow: 0px 0px 50px rgba(0, 0, 0, 1);
+}
+.text-shadow-20 {
+  text-shadow: 0px 0px 20px rgba(0, 0, 0, 1);
+}
+
