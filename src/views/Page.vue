@@ -13,6 +13,7 @@ const route = useRoute();
 const domain = import.meta.env.VITE_APP_DOMAIN;
 
 const body = document.getElementsByTagName("body")[0];
+
 onMounted(() => {
   body.classList.add("single-page");
   getContent();
@@ -25,20 +26,24 @@ onUnmounted(() => {
 const errors = ref([]);
 
 const getContent = async () => {
-  const slug = route.params.slug ?? route.meta.slug ?? "sakums";
-  const res = await api.getCollectionItem("pages", slug);
-  if (res.data && res.data.length > 0) {
-    Content.value = res.data[0].attributes;
+  //const slug = route.params.slug ?? route.meta.slug ?? "sakums";
+  const slug = route.meta.page;
+  const locale = route.params.lang ?? route.meta.lang ?? "en";
+  //console.log(slug);
+  const res = await api.get(
+    `pages?populate=*&filters[slug][$eq]=${slug}&locale=${locale}`
+  );
+  //console.log(res);
+  Content.value = res.data[0].attributes;
+  console.log(Content.value);
+  document.title = `${Content.value.title} | ${import.meta.env.VITE_SITE_NAME}`;
 
-    //console.log(Content.value);
-
-    document.title = `${import.meta.env.VITE_SITE_NAME} - ${
-      Content.value.title
-    }`;
+  if (Content.value.seo && Content.value.seo.description !== '') {
     document.head.querySelector("meta[name=description]").content =
-      Content.value.seo.seo_description;
-    document.head.querySelector("meta[name=keywords]").content =
-      Content.value.seo.seo_keywords;
+      Content.value.seo.description;
+  } else {
+    document.head.querySelector("meta[name=description]").content =
+      Content.value.title;
   }
 };
 
@@ -58,7 +63,8 @@ export default defineComponent({
 </script>
 
 <template>
-  <Navbar transparent />
+   <div class="h-screen pb-64">
+  <Navbar transparent :contentType="'pages'"/>
   <PageHeader :contentType="'pages'" />
   <div v-if="Content">
     <div v-for="Block in Content.Blocks">
@@ -85,7 +91,10 @@ export default defineComponent({
         class="mx-auto max-w-5xl px-6 pb-10 lg:px-8 relative"
         v-if="Block.__component === 'blocks.text-and-image'"
       >
-        <div class="grid grid-cols-1 gap-8" :class="{ 'md:grid-cols-4': Block.Image.data }">
+        <div
+          class="grid grid-cols-1 gap-8"
+          :class="{ 'md:grid-cols-4': Block.Image.data }"
+        >
           <div
             v-if="Block.Image.data"
             class="md:col-span-1 text-center"
@@ -102,28 +111,33 @@ export default defineComponent({
             :class="{ 'order-first': Block.image_position === 'right' }"
           >
             <div>
-              <h2 v-if="Block.title" class="text-center md:text-left">{{ Block.title }}</h2>
-              <div v-if="Block.Text" v-html="Block.Text" class="content text-center md:text-left"></div>
+              <h2 v-if="Block.title" class="text-center md:text-left">
+                {{ Block.title }}
+              </h2>
+              <div
+                v-if="Block.Text"
+                v-html="Block.Text"
+                class="content text-center md:text-left"
+              ></div>
             </div>
           </div>
         </div>
       </div>
 
       <div v-if="Block.__component === 'blocks.shortcuts'">
-
-        <div class="mx-auto max-w-7xl px-6 pb-10 lg:px-8 relative" 
-        :class="{ 
-          'max-w-lg': Block.max_width == 'w512px',
-          'max-w-xl': Block.max_width == 'w576px',
-          'max-w-2xl': Block.max_width == 'w672px',
-          'max-w-3xl': Block.max_width == 'w768px',
-          'max-w-4xl': Block.max_width == 'w896px',
-          'max-w-5xl': Block.max_width == 'w1024px',
-          'max-w-6xl': Block.max_width == 'w1152px',
-          'max-w-7xl': Block.max_width == 'w1280px',
-          'max-w-7xl': Block.max_width == null
-        }"
-        
+        <div
+          class="mx-auto max-w-7xl px-6 pb-10 lg:px-8 relative"
+          :class="{
+            'max-w-lg': Block.max_width == 'w512px',
+            'max-w-xl': Block.max_width == 'w576px',
+            'max-w-2xl': Block.max_width == 'w672px',
+            'max-w-3xl': Block.max_width == 'w768px',
+            'max-w-4xl': Block.max_width == 'w896px',
+            'max-w-5xl': Block.max_width == 'w1024px',
+            'max-w-6xl': Block.max_width == 'w1152px',
+            'max-w-7xl': Block.max_width == 'w1280px',
+            'max-w-7xl': Block.max_width == null,
+          }"
         >
           <h2 v-if="Block.title">{{ Block.title }}</h2>
 
@@ -152,5 +166,6 @@ export default defineComponent({
       </div>
     </div>
   </div>
+</div>
   <Footer />
 </template>

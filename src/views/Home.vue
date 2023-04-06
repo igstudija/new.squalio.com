@@ -14,9 +14,9 @@ const Content = ref({});
 const getContent = async () => {
   const res = await api.get(`/home?populate=*&nested`);
   Content.value = res.data.attributes;
-  document.title = `${import.meta.env.VITE_SITE_NAME} - ${Content.value.title}`;
-  // document.head.querySelector("meta[name=description]").content = Content.value.seo.seo_description;
-  //  document.head.querySelector("meta[name=keywords]").content = Content.value.seo.seo_keywords;
+  //console.log(Content.value);
+  document.title = `${Content.value.title} | ${import.meta.env.VITE_SITE_NAME}`;
+  document.head.querySelector("meta[name=description]").content = Content.value.SEO.description;
 };
 
 onMounted(() => {
@@ -43,7 +43,8 @@ export default defineComponent({
 </script>
 
 <template>
-  <Navbar transparent />
-
+  <div class="h-screen pb-64">
+  <Navbar transparent :contentType="'home'"/>
+</div>
   <Footer />
 </template>

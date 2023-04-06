@@ -44,6 +44,33 @@ export default  {
     }
   },
 
+
+  async getColLoc(type, slug, locale) {
+    try {
+      //console.log(type, slug, locale);
+      const response = await API.get(`${type}?filters[slug][$eq]=${slug}&nested=&populate=deep&locale=${locale}`); // ?filters[slug][$eq]=company&nested=&populate=deep&locale=en&field[0]=localizations
+      //console.log("getColLoc response:", response); // Move this line here
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
+
+  async getSinLoc(type, locale) {
+    try {
+      //console.log(type, locale);
+      const response = await API.get(`${type}/?populate=*&locale=${locale}&field[0]=localizations`); // ${slug}?populate=*&locale=${locale}&field[0]=localizations
+      //console.log("getSinLoc response data:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
+  
+  
+
   async getSettings() {
     try {
       const response = await API.get(`setting?populate=*`);

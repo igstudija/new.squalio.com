@@ -53,16 +53,17 @@ export default {
 </script>
 
 <template>
-  <footer class="bg-white">
-    <div class="mx-auto flex flex-col items-center justify-center max-w-7xl overflow-hidden py-20 px-6 sm:py-24 lg:px-8">
+  <footer class=" bg-gray-900 w-screen h-64 -mt-64">
+    <div class="mx-auto relative max-w-7xl overflow-hidden px-6 pt-6 lg:px-8 h-full">
       
-     
+     <div class="absolute bottom-0 pb-4 w-full ">
       <RouterLink
         v-if="settings.seo?.title && currentLanguage"
         :to="`${currentLanguage === 'en' ? '/' : `/${currentLanguage}`}`"
         rel="tooltip"
         :title="settings.seo.title"
         data-placement="bottom"
+        class="block text-center"
       >
         <template v-if="settings.logo?.data?.attributes?.url">
           <img
@@ -70,12 +71,15 @@ export default {
             :alt="settings.seo.title"
             loading="lazy"
             :style="{ height: '25px' }"
+            class="inline-block footer-logo"
           />
         </template>
       </RouterLink>
 
-      <div class="mt-10 flex justify-center space-x-10"></div>
-      <p class="mt-10 text-center text-xs leading-5 text-gray-500">&copy; {{ new Date().getFullYear() }} <template v-if="settings.seo?.title">{{ settings.seo.title }}</template>.</p>
+      
+      <div class="text-center pt-2 text-gray-400 text-sm">&copy; {{ new Date().getFullYear() }}, <template v-if="settings.seo?.title">{{ settings.seo.title }}</template></div>
+
+    </div>
     </div>
   </footer>
 
@@ -89,6 +93,11 @@ export default {
   a {
     text-decoration: underline;
   }
+}
+
+.footer-logo {
+  -webkit-filter: brightness(0) invert(1);
+  filter: brightness(0) invert(1);
 }
 
 </style>

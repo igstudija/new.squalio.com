@@ -62,7 +62,7 @@ export default {
       .get(`gdpr?locale=${this.currentLanguage}&populate=*&nested`)
       .then((response) => {
         this.consentData = response.data.attributes;
-        this.cookieOptions = this.consentData.cookie_scripts;
+        //this.cookieOptions = this.consentData.cookie_scripts;
         //console.log(this.cookieOptions);
         // console.log("Consent data:", this.consentData);
         //console.log("Cookie options:", this.cookieOptions);
@@ -70,6 +70,23 @@ export default {
       .catch((e) => {
         this.errors.push(e);
       });
+
+
+      api
+      .get(`cookie-script?populate=deep`)
+      .then((response) => {
+        this.cookieOptions = response.data.attributes.cookie_scripts;
+        
+        console.log("Cookie options:", this.cookieOptions);
+      })
+      .catch((e) => {
+        this.errors.push(e);
+      });
+
+
+
+
+      
       
   },
 
@@ -97,6 +114,12 @@ export default {
     }, {});
   },
   methods: {
+
+
+
+
+
+
     loadCookieConsent() {
       const storedConsent = localStorage.getItem("cookieConsent");
 
@@ -264,12 +287,12 @@ export default {
 <template>
   <div
     v-if="!isAccepted && !hasStoredConsent"
-    class="top-0 left-0 right-0 bottom-0 z-20 fixed bg-black opacity-60"
+    class="top-0 left-0 right-0 bottom-0 z-40 fixed bg-black opacity-60"
   ></div>
   <div
     v-if="!isAccepted"
     :class="{ 'cookie-block': true, 'slide-in': showBlock }"
-    class="block p-6 mb-6 bg-white border m-4 border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-100 dark:border-gray-700 z-30 absolute"
+    class="block p-6 mb-6 bg-white border m-4 border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:hover:bg-gray-700 hover:bg-gray-100 dark:border-gray-700 z-50 absolute"
   >
     <button
       v-if="hasStoredConsent"
@@ -357,7 +380,7 @@ export default {
   </div>
   <button
     v-if="isAccepted && hasStoredConsent"
-    class="fixed bottom-2 left-2 text-3xl leading-none"
+    class="fixed bottom-2 left-2 text-3xl leading-none cookie-button"
     @click="showCookieSettings"
   >
     <i class="fa fa-cookie ig-heading"></i>
@@ -372,5 +395,11 @@ export default {
   right: 0;
 
   transition: transform 0.3s ease-in-out;
+}
+
+.cookie-button {
+  i {
+    color:#a9b62b
+  }
 }
 </style>

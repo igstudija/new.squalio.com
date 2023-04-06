@@ -1,43 +1,38 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, defineProps, provide } from "vue";
 import { RouterLink } from "vue-router";
-
 import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
-
 import { useLanguageStore } from "@/store/language";
 import { Dialog, DialogPanel } from "@headlessui/vue";
 import { Bars3Icon, XMarkIcon } from "@heroicons/vue/24/outline";
 import api from "@/api";
+
 const mobileMenuOpen = ref(false);
 const Domain = import.meta.env.VITE_APP_DOMAIN;
-
 const store = useLanguageStore();
 const selectedLanguage = computed(() => store.selected);
 
 function switchLanguage(lang) {
-  //console.log("Received language change event:", lang);
   store.setSelectedLanguage(lang);
-  // set the language in the VueI18n instance if you're using it
 }
+const props = defineProps({
+  contentType: {
+    type: String,
+    required: true,
+  },
+});
 
-//watch(selectedLanguage, (newLang, oldLang) => {
-// console.log("Selected language changed from", oldLang, "to", newLang);
-//});
+provide("contentType", props.contentType);
 </script>
 
 <script>
 export default {
-  components: {
-    LanguageSwitcher,
-  },
-
+  components: { LanguageSwitcher },
   computed: {
     currentLanguage() {
       return useLanguageStore().selected;
     },
   },
-
-  //get posts
 
   data() {
     return {
@@ -49,72 +44,43 @@ export default {
       isNavbarScrolled: false,
     };
   },
-
-  created() {
-    //this is default top menu id
+  async created() {
     const default_menu_id = 1;
-    api
-      .getMenu(default_menu_id)
-      .then((response) => {
-        this.localizations = response.data.attributes.localizations;
+    try {
+      const response = await api.getMenu(default_menu_id);
+      this.localizations = response.data.attributes.localizations;
 
-        let loc = this.localizations.data;
+      const desiredLocale = useLanguageStore().selected;
+      const itemWithLocale = this.localizations.data.find(
+        (c) => c.attributes.locale === desiredLocale
+      );
+      const menu_id = itemWithLocale ? itemWithLocale.id : default_menu_id;
 
-        const desiredLocale = useLanguageStore().selected;
-        const itemWithLocale = loc.find(
-          (c) => c.attributes.locale === desiredLocale
-        );
+      const menuResponse = await api.getMenu(menu_id);
+      this.menu = menuResponse.data.attributes;
+      this.posts = menuResponse.data.attributes.menus;
+      console.log("menu", this.posts);
+    } catch (e) {
+      this.errors.push(e);
+    }
 
-        if (itemWithLocale) {
-          const menu_id = itemWithLocale.id;
-          api
-            .getMenu(menu_id)
-            .then((response) => {
-              this.menu = response.data.attributes;
-              this.posts = response.data.attributes.menus;
-              //console.log(this.posts);
-            })
-            .catch((e) => {
-              this.errors.push(e);
-            });
-        } else {
-          //const menu_id = itemWithLocale.id;
-          api
-            .getMenu(default_menu_id)
-            .then((response) => {
-              this.menu = response.data.attributes;
-              this.posts = response.data.attributes.menus;
-              //console.log(this.posts);
-            })
-            .catch((e) => {
-              this.errors.push(e);
-            });
-        }
-      })
-      .catch((e) => {
-        this.errors.push(e);
-      });
-
-    api
-      .getSettings()
-      .then((response) => {
-        this.settings = response.data.attributes;
-        //console.log(this.settings);
-      })
-      .catch((e) => {
-        this.errors.push(e);
-      });
+    try {
+      const settingsResponse = await api.getSettings();
+      this.settings = settingsResponse.data.attributes;
+    } catch (e) {
+      this.errors.push(e);
+    }
   },
 };
 </script>
 
 <template>
-  <header class="fixed top-0 left-0 right-0 z-30">
+  <header class="top-0 left-0 right-0 z-30 sticky">
     <div
       class="justify-between mx-auto max-w-7xl hidden list-none lg:px-8 lg:flex lg:gap-x-4"
     >
-      <div>email</div>
-      <language-switcher />
+      <div class="py-2 text-sm text-slate-600"><i class="fa-regular fa-envelope"></i> Contact us: <a href="mailto:squalio@squalio.com" class="underline decoration-slate-300">squalio@squalio.com</a></div>
+      <LanguageSwitcher :content-type="contentType" />
     </div>
 
     <nav
@@ -159,10 +125,10 @@ export default {
           class="text-md font-semibold leading-6 text-gray-900 group inline-block relative"
         >
           <RouterLink
-            v-if="post.external == null || post.external == false"
+            v-if="post.page.data !== null"
             :to="{
-              path: `${currentLanguage === 'en' ? '' : `/${menu.locale}`}${
-                post.url
+              path: `${currentLanguage === 'en' ? '' : `/${menu.locale}`}/${
+                post.page.data.attributes.slug
               }`,
             }"
             class="p-2 uppercase text-slate-600 hover:text-slate-900 text-sm block"
@@ -176,9 +142,9 @@ export default {
           </RouterLink>
 
           <a
-            v-else="post.external == true"
+            v-else="post.page.data === null"
             :href="post.url"
-            target="_blank"
+            :target="post.url.includes('https') ? '_blank' : '_self'"
             class="p-2 uppercase text-slate-600 hover:text-slate-900 text-sm block"
           >
             <span>{{ post.title }} </span>
@@ -189,21 +155,20 @@ export default {
             class="m-0 pb-2 pt-2 min-w-[200px] w-auto list-none hidden group-hover:block absolute bg-slate-100 rounded-md -translate-x-1/4"
           >
             <li v-for="child in post.menu_item" :key="child">
+            
+ 
               <RouterLink
-                v-if="child.external == null || child.external == false"
-                :to="{
-                  path: `${currentLanguage === 'en' ? '' : `/${menu.locale}`}${
-                    post.url
-                  }/${child.url}`,
+                v-if="child.page.data !== null"
+                :to="{path: `${currentLanguage === 'en' ? '' : `/${menu.locale}`}/${post.page.data.attributes.slug}/${child.page.data.attributes.slug}`,
                 }"
                 class="dropdown-item uppercase py-1 text-sm ps-3 border-radius-md p-5 block"
               >
                 <span>{{ child.title }} </span>
               </RouterLink>
               <a
-                v-if="child.external == true"
+                v-if="child.page.data === null"
                 :href="child.url"
-                target="_blank"
+                :target="child.url.includes('https') ? '_blank' : '_self'"
                 class="dropdown-item uppercase py-1 text-sm ps-3 border-radius-md p-5 block"
               >
                 <span>{{ child.title }} </span>
